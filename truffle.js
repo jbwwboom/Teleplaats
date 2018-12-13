@@ -1,6 +1,6 @@
 module.exports = {
     // See <http://truffleframework.com/docs/advanced/configuration>
-    // for more about customizing your Truffle configuration!
+    // for more about ctrufustomizing your Truffle configuration!
     networks: {
         avans: {
             host: "node.codingskills.nl",

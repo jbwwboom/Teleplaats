@@ -1,48 +1,110 @@
-pragma solidity ^0.4.17;
-pragma experimental ABIEncoderV2;
+pragma solidity ^0.4.23;
 
-contract Teleplaats {
-    Phone[] public phones;
-    User[] public users;
-    Order[] public orders;
+contract Teleplaats{
+    mapping (uint => Phone) public phones;
+    mapping (uint => Order) public orders;
 
-	struct Phone {
+    uint public phoneid;
+    uint public orderid;
+
+    struct Phone {
         string IMEI;
         string model;
         string brand;
         string state;
-        string username;
+        address owner;
         string info;
     }
 
-    struct User{
+    struct Seller{
         string username;
-        address byteAddress;
-        string privateKey;
-        string publicKey;
-        string userAddress;
-        string zipcode;
-        Phone[] phones;
+        address sellerAddr;
+        //string zipcode;
+        //Phone[] phones;
+    }
+
+    struct Buyer{
+        string username;
+        address buyerAddr;
+        //string zipcode;
+        //Phone[] phones;
     }
 
     struct Bet{
-        User user;
-        Order order;
+        Buyer user;
         uint price;
         bool isBet;
     }
 
     struct Order{
         Phone phone;
-        User user;
+        Seller user;
         bool isBet;
         uint price;
         bool isSold;
-        Bet[] bets;
+        Bet bet;
         uint highestBet;
     }
 
-    function addPhone(Phone phone) public {
-        phones.push(phone);
+    address public seller;
+
+    address public buyer;
+
+    address public owner;
+
+    Seller public sellerS;
+
+    Buyer public buyerS;
+
+
+    constructor(string sellerName) public {
+        seller = msg.sender;
+        sellerS = Seller(sellerName, seller);
+        owner = msg.sender;
     }
+
+    function addPhone(string IMEI, string model, string brand, string state, string info) public{
+        require(seller == msg.sender);
+
+        Phone memory phone = Phone(IMEI, model, brand,state, seller, info);
+
+        phoneid++;
+
+        phones[phoneid] = phone;
+    }
+
+    function removePhone(uint id) public{
+        delete phones[id];
+    }
+
+    function addOrder(uint id, uint price) public{
+        require(seller == msg.sender);
+
+        Phone memory phone = phones[id];
+
+        Bet memory placeholderBet;
+
+        Order memory order = Order(phone, sellerS, false, price, false, placeholderBet, price);
+
+        orderid++;
+
+        orders[orderid] = order;
+    }
+
+    function buyOrder(string buyerName, uint id, uint price) public {
+        require(seller != msg.sender);
+        buyer = msg.sender;
+        buyerS = Buyer(buyerName, buyer);
+
+        Bet memory bet = Bet(buyerS, price, false);
+
+        orders[id].bet = bet;
+    }
+
+    function changeOwner(uint id) public{
+        require(buyer == msg.sender);
+
+        phones[id].owner = buyer;
+    }
+
 }
