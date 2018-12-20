@@ -12,47 +12,37 @@ contract Teleplaats{
         string model;
         string brand;
         string state;
-        address owner;
-        string info;
+        string username;
+        address ownerAddr;
     }
 
-    struct Seller{
+    struct User{
         string username;
-        address sellerAddr;
-    }
-
-    struct Buyer{
-        string username;
-        address buyerAddr;
+        address userAddr;
     }
 
     struct Bet{
-        Buyer user;
+        User user;
         uint price;
         bool isBet;
     }
 
     struct Order{
         Phone phone;
-        Seller user;
+        User owner;
         bool isBet;
         uint price;
         bool isSold;
         Bet bet;
     }
 
-    Seller public seller;
-
-    Buyer public buyer;
-
-    constructor(string sellerName) public {
-        seller = Seller(sellerName, msg.sender);
+    function sellPhone(string sellerName, string IMEI, string model, string brand, string state, uint price, bool isBet) public{
+        addPhone(sellerName, IMEI, model, brand, state);
+        addOrder(phoneid, price, isBet);
     }
 
-    function addPhone(string IMEI, string model, string brand, string state, string info) public{
-        require(seller.sellerAddr == msg.sender);
-
-        Phone memory phone = Phone(IMEI, model, brand,state, seller.sellerAddr, info);
+    function addPhone(string sellerName, string IMEI, string model, string brand, string state) private{
+        Phone memory phone = Phone(IMEI, model, brand, state, sellerName, msg.sender);
 
         phoneid++;
 
@@ -60,17 +50,20 @@ contract Teleplaats{
     }
 
     function removePhone(uint id) public{
+        require(phones[id].ownerAddr == msg.sender);
         delete phones[id];
     }
 
-    function addOrder(uint id, uint price, bool isBet) public{
-        require(seller.sellerAddr == msg.sender);
+    function addOrder(uint id, uint price, bool isBet) private {
+        require(phones[id].ownerAddr == msg.sender);
 
         Phone memory phone = phones[id];
 
         Bet memory placeholderBet;
 
-        Order memory order = Order(phone, seller, isBet, price, false, placeholderBet);
+        User memory user = User(phone.username, phone.ownerAddr);
+
+        Order memory order = Order(phone, user, isBet, price, false, placeholderBet);
 
         orderid++;
 
@@ -78,13 +71,11 @@ contract Teleplaats{
     }
 
     function buyOrder(string buyerName, uint id, uint price) public {
-        require(seller.sellerAddr != msg.sender);
+        require(orders[id].owner.userAddr != msg.sender);
 
-        if(orders[id].isBet && price > orders[id].bet.price){
-            buyer = Buyer(buyerName, msg.sender);
-            Bet memory bet = Bet(buyer, price, orders[id].isBet);
-            orders[id].bet = bet;
-        }
+        User memory buyer = User(buyerName, msg.sender);
+        Bet memory bet = Bet(buyer, price, orders[id].isBet);
+        orders[id].bet = bet;
 
         if(price >= orders[id].price && !orders[id].isBet){
             changeOwner(id);
@@ -92,11 +83,14 @@ contract Teleplaats{
     }
 
     function changeOwner(uint id) private{
-        phones[id].owner = buyer.buyerAddr;
+        User memory user = orders[id].bet.user;
+        phones[id].username = user.username;
+        phones[id].ownerAddr = user.userAddr;
+        orders[id].isSold = true;
     }
 
     function acceptBet(uint id) public{
-        require(seller.sellerAddr == msg.sender);
+        require(orders[id].owner.userAddr == msg.sender);
 
         if(orders[id].isBet && orders[id].bet.price > 0){
             changeOwner(id);
