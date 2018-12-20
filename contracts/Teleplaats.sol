@@ -60,6 +60,7 @@ contract Teleplaats{
     }
 
     function removePhone(uint id) public{
+        require(seller.sellerAddr == msg.sender);
         delete phones[id];
     }
 
@@ -80,11 +81,9 @@ contract Teleplaats{
     function buyOrder(string buyerName, uint id, uint price) public {
         require(seller.sellerAddr != msg.sender);
 
-        if(orders[id].isBet && price > orders[id].bet.price){
-            buyer = Buyer(buyerName, msg.sender);
-            Bet memory bet = Bet(buyer, price, orders[id].isBet);
-            orders[id].bet = bet;
-        }
+        buyer = Buyer(buyerName, msg.sender);
+        Bet memory bet = Bet(buyer, price, orders[id].isBet);
+        orders[id].bet = bet;
 
         if(price >= orders[id].price && !orders[id].isBet){
             changeOwner(id);
