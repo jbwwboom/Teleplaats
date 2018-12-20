@@ -93,9 +93,11 @@ contract Teleplaats{
         Bet memory bet = Bet(buyer, price, false);
 
         orders[id].bet = bet;
+
+        changeOwner(id);
     }
 
-    function changeOwner(uint id) public{
+    function changeOwner(uint id) private{
         require(buyer.buyerAddr == msg.sender);
 
         owner = buyer.buyerAddr;
