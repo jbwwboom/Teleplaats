@@ -46,27 +46,22 @@ contract Teleplaats{
         uint highestBet;
     }
 
-    address public seller;
-
-    address public buyer;
-
     address public owner;
 
-    Seller public sellerS;
+    Seller public seller;
 
-    Buyer public buyerS;
+    Buyer public buyer;
 
 
     constructor(string sellerName) public {
-        seller = msg.sender;
-        sellerS = Seller(sellerName, seller);
+        seller = Seller(sellerName, msg.sender);
         owner = msg.sender;
     }
 
     function addPhone(string IMEI, string model, string brand, string state, string info) public{
-        require(seller == msg.sender);
+        require(seller.sellerAddr == msg.sender);
 
-        Phone memory phone = Phone(IMEI, model, brand,state, seller, info);
+        Phone memory phone = Phone(IMEI, model, brand,state, seller.sellerAddr, info);
 
         phoneid++;
 
@@ -78,13 +73,13 @@ contract Teleplaats{
     }
 
     function addOrder(uint id, uint price) public{
-        require(seller == msg.sender);
+        require(seller.sellerAddr == msg.sender);
 
         Phone memory phone = phones[id];
 
         Bet memory placeholderBet;
 
-        Order memory order = Order(phone, sellerS, false, price, false, placeholderBet, price);
+        Order memory order = Order(phone, seller, false, price, false, placeholderBet, price);
 
         orderid++;
 
@@ -92,19 +87,20 @@ contract Teleplaats{
     }
 
     function buyOrder(string buyerName, uint id, uint price) public {
-        require(seller != msg.sender);
-        buyer = msg.sender;
-        buyerS = Buyer(buyerName, buyer);
+        require(seller.sellerAddr != msg.sender);
+        buyer = Buyer(buyerName, msg.sender);
 
-        Bet memory bet = Bet(buyerS, price, false);
+        Bet memory bet = Bet(buyer, price, false);
 
         orders[id].bet = bet;
     }
 
     function changeOwner(uint id) public{
-        require(buyer == msg.sender);
+        require(buyer.buyerAddr == msg.sender);
 
-        phones[id].owner = buyer;
+        owner = buyer.buyerAddr;
+
+        phones[id].owner = buyer.buyerAddr;
     }
 
 }
