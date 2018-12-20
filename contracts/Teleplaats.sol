@@ -46,8 +46,6 @@ contract Teleplaats{
         uint highestBet;
     }
 
-    address public owner;
-
     Seller public seller;
 
     Buyer public buyer;
@@ -55,7 +53,6 @@ contract Teleplaats{
 
     constructor(string sellerName) public {
         seller = Seller(sellerName, msg.sender);
-        owner = msg.sender;
     }
 
     function addPhone(string IMEI, string model, string brand, string state, string info) public{
@@ -72,14 +69,14 @@ contract Teleplaats{
         delete phones[id];
     }
 
-    function addOrder(uint id, uint price) public{
+    function addOrder(uint id, uint price, bool isBet) public{
         require(seller.sellerAddr == msg.sender);
 
         Phone memory phone = phones[id];
 
         Bet memory placeholderBet;
 
-        Order memory order = Order(phone, seller, false, price, false, placeholderBet, price);
+        Order memory order = Order(phone, seller, isBet, price, false, placeholderBet, price);
 
         orderid++;
 
@@ -90,19 +87,24 @@ contract Teleplaats{
         require(seller.sellerAddr != msg.sender);
         buyer = Buyer(buyerName, msg.sender);
 
-        Bet memory bet = Bet(buyer, price, false);
+        Bet memory bet = Bet(buyer, price, orders[id].isBet);
 
         orders[id].bet = bet;
 
-        changeOwner(id);
+        if(price >= orders[id].price && !orders[id].isBet){
+            changeOwner(id);
+        }
     }
 
     function changeOwner(uint id) private{
-        require(buyer.buyerAddr == msg.sender);
-
-        owner = buyer.buyerAddr;
-
         phones[id].owner = buyer.buyerAddr;
     }
 
+    function acceptBet(uint id) public{
+        require(seller.sellerAddr == msg.sender);
+
+        if(orders[id].isBet && orders[id].bet.price > 0){
+            changeOwner(id);
+        }
+    }
 }
