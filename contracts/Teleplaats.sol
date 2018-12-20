@@ -43,7 +43,6 @@ contract Teleplaats{
         uint price;
         bool isSold;
         Bet bet;
-        uint highestBet;
     }
 
     Seller public seller;
@@ -76,7 +75,7 @@ contract Teleplaats{
 
         Bet memory placeholderBet;
 
-        Order memory order = Order(phone, seller, isBet, price, false, placeholderBet, price);
+        Order memory order = Order(phone, seller, isBet, price, false, placeholderBet);
 
         orderid++;
 
@@ -85,11 +84,12 @@ contract Teleplaats{
 
     function buyOrder(string buyerName, uint id, uint price) public {
         require(seller.sellerAddr != msg.sender);
-        buyer = Buyer(buyerName, msg.sender);
 
-        Bet memory bet = Bet(buyer, price, orders[id].isBet);
-
-        orders[id].bet = bet;
+        if(orders[id].isBet && price > orders[id].bet.price){
+            buyer = Buyer(buyerName, msg.sender);
+            Bet memory bet = Bet(buyer, price, orders[id].isBet);
+            orders[id].bet = bet;
+        }
 
         if(price >= orders[id].price && !orders[id].isBet){
             changeOwner(id);
