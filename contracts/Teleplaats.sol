@@ -19,15 +19,11 @@ contract Teleplaats{
     struct Seller{
         string username;
         address sellerAddr;
-        //string zipcode;
-        //Phone[] phones;
     }
 
     struct Buyer{
         string username;
         address buyerAddr;
-        //string zipcode;
-        //Phone[] phones;
     }
 
     struct Bet{
@@ -48,7 +44,6 @@ contract Teleplaats{
     Seller public seller;
 
     Buyer public buyer;
-
 
     constructor(string sellerName) public {
         seller = Seller(sellerName, msg.sender);
