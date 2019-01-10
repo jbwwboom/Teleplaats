@@ -82,10 +82,11 @@ contract Teleplaats{
 
         //User memory buyer = User(buyerName, msg.sender);
         //Bet memory bet = Bet(buyerName, msg.sender, price, orders[id].isBet);
-        orders[id].betUsername = buyerName;
-        orders[id].betAddr = msg.sender;
-        orders[id].betPrice = price;
-
+        if(price > orders[id].betPrice){
+            orders[id].betUsername = buyerName;
+            orders[id].betAddr = msg.sender;
+            orders[id].betPrice = price;
+        }
 
         if(price >= orders[id].price && !orders[id].isBet){
             changeOwner(id);
